@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Orders | Price Compare</title>
+
+  <!-- Bootstrap CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary-color: #007BFF;
+      --bg-color: #e0f7fa;
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --btn-color: #4CAF50;
+      --btn-hover: #388e3c;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+      background-color: var(--bg-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 40px 20px;
+    }
+
+    .card-container {
+      background: var(--card-bg);
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow);
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 1100px;
+      margin: auto;
+      animation: fadeIn 0.7s ease-in-out;
+    }
+
+    h2 {
+      text-align: center;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 30px;
+      letter-spacing: 1px;
+    }
+
+    table {
+      width: 100%;
+    }
+
+    thead {
+      background-color: var(--primary-color);
+      color: white;
+    }
+
+    th, td {
+      vertical-align: middle;
+      padding: 14px;
+    }
+
+    tr:hover {
+      background-color: #f0faff;
+    }
+
+    .btn-packed {
+      background-color: var(--btn-color);
+      color: white;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 14px;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-packed:hover {
+      background-color: var(--btn-hover);
+    }
+
+    .no-orders {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #555;
+      margin-top: 40px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      th, td {
+        font-size: 14px;
+        padding: 10px;
+      }
+
+      .btn-packed {
+        padding: 4px 10px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div style="
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+">
+  <a href="/admin_dashboard" style="
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+    border: none;
+    border-radius: 12px;
+    color: #003e58;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+  " onmouseover="this.style.background='linear-gradient(135deg, #b2ebf2, #e0f7fa)'" onmouseout="this.style.background='linear-gradient(135deg, #e0f7fa, #b2ebf2)'">
+    ← Back to Dashboard
+  </a>
+</div>
+
+
+  <div class="card-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="m-0">Ordered Products</h2>
+      <div>
+        <a href="/admin_order?status=unpacked" class="btn {{ 'btn-primary' if not show_packed else 'btn-outline-primary' }} me-2">Unpacked</a>
+        <a href="/admin_order?status=packed" class="btn {{ 'btn-primary' if show_packed else 'btn-outline-primary' }}">Packed 📦</a>
+      </div>
+    </div>
+
+    {% if orders %}
+    <div class="table-responsive">
+      <table class="table align-middle">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Packed</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr>
+            <td>{{ order.user_email }}</td>
+            <td>{{ order.product_name }}</td>
+            <td>{{ order.quantity }}</td>
+            <td>
+                {% if not show_packed %}
+                <form method="POST" action="/admin_order" class="m-0">
+                  <input type="hidden" name="packed_id" value="{{ order.id }}">
+                  <button type="submit" class="btn btn-packed">Yes</button>
+                </form>
+                {% else %}
+                  <span>📦 Packed</span>
+                {% endif %}
+              </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      <p class="no-orders">No unpacked orders found.</p>
+    {% endif %}
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

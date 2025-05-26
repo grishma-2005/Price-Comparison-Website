@@ -1,0 +1,183 @@
+<!-- templates/admin_analytics.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Analytics Dashboard - Price Compare</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-light">
+    <div style="
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+">
+  <a href="/admin_dashboard" style="
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+    border: none;
+    border-radius: 12px;
+    color: #003e58;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+  " onmouseover="this.style.background='linear-gradient(135deg, #b2ebf2, #e0f7fa)'" onmouseout="this.style.background='linear-gradient(135deg, #e0f7fa, #b2ebf2)'">
+    ← Back to Dashboard
+  </a>
+</div>
+
+    <div class="container mt-4">
+        <h2 class="mb-4">📊 Admin Sales Dashboard</h2>
+
+        <!-- Filters -->
+        <form method="get" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <label class="form-label">Start Date</label>
+                <input type="date" class="form-control" name="start_date" value="{{ start_date }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">End Date</label>
+                <input type="date" class="form-control" name="end_date" value="{{ end_date }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Category</label>
+                <select class="form-select" name="category">
+                    <option value="">All</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat }}">{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+            </div>
+        </form>
+
+        <!-- Sales Overview -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card text-bg-success">
+                    <div class="card-body">
+                        <h5>Total Revenue</h5>
+                        <h3>₹{{ total_revenue }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-bg-info">
+                    <div class="card-body">
+                        <h5>Total Orders</h5>
+                        <h3>{{ total_orders }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-bg-warning">
+                    <div class="card-body">
+                        <h5>Avg. Order Value</h5>
+                        <h3>₹{{ avg_order_value }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="row mb-5">
+            <div class="col-md-6">
+                <h5>Revenue Over Time</h5>
+                <canvas id="revenueChart"></canvas>
+            </div>
+            <div class="col-md-6">
+                <h5>Sales by Category</h5>
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Top-Selling Products Table -->
+        <div class="mb-5">
+            <h5>Top-Selling Products</h5>
+            <table class="table table-bordered table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Units Sold</th>
+                        <th>Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product, stats in top_products.items() %}
+                        <tr>
+                            <td>{{ product }}</td>
+                            <td>{{ stats.category }}</td>
+                            <td>{{ stats.units }}</td>
+                            <td>₹{{ stats.revenue }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Inventory Alerts -->
+        <div class="mb-5">
+            <h5 class="text-danger">⚠️ Low Stock Products</h5>
+            <ul class="list-group">
+                {% for item in low_stock %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ item.name }} ({{ item.category }})
+                        <span class="badge bg-danger rounded-pill">{{ item.stock }} left</span>
+                    </li>
+                {% endfor %}
+                {% if not low_stock %}
+                    <li class="list-group-item">All products are well stocked.</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <!-- Download CSV -->
+        <div class="mb-5">
+            <button class="btn btn-outline-dark" onclick="window.print()">Download Report (PDF)</button>
+        </div>
+    </div>
+
+    <script>
+        const revenueData = {{ revenue_by_day | tojson }};
+        const categoryData = {{ category_sales | tojson }};
+
+        const labels = Object.keys(revenueData);
+        const values = Object.values(revenueData);
+
+        new Chart(document.getElementById("revenueChart"), {
+            type: "line",
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: "Revenue (₹)",
+                    data: values,
+                    borderColor: "blue",
+                    backgroundColor: "lightblue",
+                    fill: true
+                }]
+            }
+        });
+
+        const catLabels = Object.keys(categoryData);
+        const catValues = Object.values(categoryData);
+
+        new Chart(document.getElementById("categoryChart"), {
+            type: "pie",
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    label: "Category Sales",
+                    data: catValues,
+                    backgroundColor: ["#007bff", "#28a745", "#ffc107", "#dc3545", "#6610f2"]
+                }]
+            }
+        });
+    </script>
+</body>
+</html>

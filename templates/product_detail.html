@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{{ product.name }} - Price Compare</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(180deg, #f4f6f9 0%, #ffffff 100%);
+            padding-top: 70px;
+            overflow-x: hidden;
+        }
+
+        .product-container {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .product-container:hover {
+            transform: scale(1.01);
+        }
+
+        .product-image img {
+            max-width: 100%;
+            border-radius: 12px;
+            transition: transform 0.4s ease;
+        }
+
+        .product-image img:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-custom {
+            padding: 12px 24px;
+            font-size: 1rem;
+            border-radius: 8px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-custom:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px wheat;
+        }
+
+        .wishlist-btn {
+            background-color: #212529;
+            color: #fff;
+        }
+
+        .remove-wishlist-btn { /* Style for remove button */
+            background-color: #dc3545; /* Red color */
+        }
+
+        .remove-wishlist-btn:hover {
+            background-color: #c82333;
+        }
+
+
+        .buy-btn {
+            background-color: #198754;
+            color: #fff;
+        }
+
+        h1 {
+            font-weight: bold;
+            font-size: 2.2rem;
+        }
+
+        .details p {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+        }
+
+        footer {
+            background-color: #343a40;
+            color: #ddd;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        .review-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+        }
+
+        .review {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .review:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .rating {
+            color: gold;
+            font-size: 1.2rem;
+        }
+
+        .review-form {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+        }
+
+        .form-label {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top px-4">
+        <a class="navbar-brand" href="/">Price Compare</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="/index">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="/wishlist">Wishlist</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="product-container row align-items-center" data-aos="fade-up" data-aos-duration="1000">
+            <div class="col-md-6 product-image mb-4 mb-md-0">
+                <div class="image-slider-container" style="overflow: hidden; position: relative;">
+                    <div class="image-slider" style="display: flex; transition: transform 0.5s ease-in-out;">
+                        {% if images %}
+                            {% for url in images %}
+                                <img src="{{ url }}" alt="{{ product.get('name', 'Product') }}" style="width: 100%; flex-shrink: 0; border-radius: 8px;">
+                            {% endfor %}
+                        {% else %}
+                            <img src="{{ product.get('image_url', '').split(',')[0] }}" alt="{{ product.get('name', 'Product') }}" style="width: 100%; border-radius: 8px;">
+                            {% if product.get('image_url', '').split(',') | length > 1 %}
+                                <p class="mt-2">Additional images might be available.</p>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+                {% if images | length > 1 %}
+                <div class="slider-controls mt-2">
+                    <button onclick="prevSlide()">Previous</button>
+                    <button onclick="nextSlide()">Next</button>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-6 details">
+                <h1 data-aos="fade-right" data-aos-delay="100">{{ product.name }}</h1>
+                <p><strong>Price:</strong> ₹{{ product.price }}</p>
+                <p><strong>Stock Available:</strong> {{ product.stock }}</p>
+                <p><strong>Description:</strong> {{ product.description }}</p>
+
+                <div class="d-flex gap-3 mt-3">
+                    {# Conditional rendering of Add/Remove from Wishlist button #}
+                    {% if in_wishlist %}
+                        <form method="POST" action="/remove-from-wishlist">
+                            {# Pass the wishlist_item_id for precise removal if available, otherwise fallback to product_url #}
+                            <input type="hidden" name="wishlist_id" value="{{ wishlist_item_id }}">
+                            <input type="hidden" name="product_url" value="{{ product.name }}"> {# Use product.name as identifier for Price Compare #}
+                            <button type="submit" class="btn btn-custom wishlist-btn remove-wishlist-btn">Remove from Wishlist</button>
+                        </form>
+                    {% else %}
+                        <form method="POST" action="/add_to_wishlist">
+                            {# For Price Compare products, use product.name as the product_url in wishlist db for consistency #}
+                            <input type="hidden" name="product_url" value="{{ product.name }}">
+                            <input type="hidden" name="product_title" value="{{ product.name }}">
+                            <input type="hidden" name="product_price" value="{{ product.price }}">
+                            <input type="hidden" name="source_type" value="Price Compare">
+                            <input type="hidden" name="product_photo" value="{{ images[0] if images else product.image_url.split(',')[0] if product.image_url else '' }}">
+                            <button type="submit" class="btn btn-custom wishlist-btn">❤️ Add to Wishlist</button>
+                        </form>
+                    {% endif %}
+                    <form action="{{ url_for('order_page', product_name=product.name) }}" method="get">
+                        <button type="submit" class="btn btn-custom buy-btn">Order Now</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="review-container mt-5" data-aos="fade-up" data-aos-delay="200">
+            <h2>Customer Reviews</h2>
+            {% if reviews %}
+                {% for review in reviews %}
+                    <div class="review">
+                        <p class="rating">
+                            {% for i in range(review.rating) %}⭐{% endfor %}
+                        </p>
+                        <p><strong>{{ review.user_email if review.user_email else 'Anonymous' }}</strong> -
+    {% if review.created_at %}
+        {% set parsed_date = review.created_at %}
+        {% set parsed_date_obj = None %}
+          {% if parsed_date is string %}
+            {# Attempt to parse if it's a string and handle potential errors gracefully #}
+            {% if datetime and 'fromisoformat' in datetime|string %}
+            {% set parsed_date_obj = datetime.fromisoformat(parsed_date) %}
+          {% endif %}
+        {% else %}
+          {% set parsed_date_obj = parsed_date %}
+        {% endif %}
+        {% if parsed_date_obj %}
+          {{ parsed_date_obj.strftime('%Y-%m-%d %H:%M') }}
+        {% else %}
+          {{ review.created_at }} {# Fallback to display the original string #}
+        {% endif %}
+    {% endif %}
+    {% if session['email'] == review.user_email %}
+                        <a href="{{ url_for('edit_review_page', review_id=review.id) }}" class="btn btn-sm btn-outline-secondary ms-2">Edit</a>
+                    {% endif %}
+</p>
+<p>{{ review.comment }}</p>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No reviews yet. Be the first to write one!</p>
+            {% endif %}
+        </div>
+
+        <div class="review-form mt-4" data-aos="fade-up" data-aos-delay="300">
+            {# Check if we are editing an existing review #}
+            {% if editing_review %}
+                <h3>Edit Your Review</h3>
+                <form method="POST" action="{{ url_for('update_review', review_id=editing_review.id) }}">
+                    <input type="hidden" name="product_name" value="{{ product.name }}">
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Rating:</label>
+                        <select class="form-select" id="rating" name="rating" required>
+                            <option value="5" {% if editing_review.rating == 5 %}selected{% endif %}>★★★★★ (Excellent)</option>
+                            <option value="4" {% if editing_review.rating == 4 %}selected{% endif %}>★★★★☆ (Good)</option>
+                            <option value="3" {% if editing_review.rating == 3 %}selected{% endif %}>★★★☆☆ (Average)</option>
+                            <option value="2" {% if editing_review.rating == 2 %}selected{% endif %}>★★☆☆☆ (Poor)</option>
+                            <option value="1" {% if editing_review.rating == 1 %}selected{% endif %}>★☆☆☆☆ (Terrible)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Comment:</label>
+                        <textarea class="form-control" id="comment" name="comment" rows="3" required>{{ editing_review.comment }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Review</button>
+                    <a href="{{ url_for('product_detail', product_name=product.name) }}" class="btn btn-secondary ms-2">Cancel Edit</a>
+                </form>
+            {% else %}
+                {# Original "Write a Review" form #}
+                <h3>Write a Review</h3>
+                {% if session['email'] %}
+                    <form method="POST" action="/submit_review">
+                        <input type="hidden" name="product_name" value="{{ product.name }}">
+                        <div class="mb-3">
+                            <label for="rating" class="form-label">Rating:</label>
+                            <select class="form-select" id="rating" name="rating" required>
+                                <option value="5">★★★★★ (Excellent)</option>
+                                <option value="4">★★★★☆ (Good)</option>
+                                <option value="3">★★★☆☆ (Average)</option>
+                                <option value="2">★★☆☆☆ (Poor)</option>
+                                <option value="1">★☆☆☆☆ (Terrible)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="comment" class="form-label">Comment:</label>
+                            <textarea class="form-control" id="comment" name="comment" rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Review</button>
+                    </form>
+                {% else %}
+                    <p><a href="{{ url_for('home') }}">Sign in</a> to leave a review.</p>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+<script>
+    const slider = document.querySelector('.image-slider');
+    const images = slider ? slider.querySelectorAll('img') : [];
+    let currentIndex = 0;
+
+    function nextSlide() {
+        if (images.length > 0) {
+            currentIndex = (currentIndex + 1) % images.length;
+            updateSlider();
+        }
+    }
+
+    function prevSlide() {
+        if (images.length > 0) {
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            updateSlider();
+        }
+    }
+
+    function updateSlider() {
+        if (slider && images.length > 0) {
+            const translateValue = -currentIndex * 100 + '%';
+            slider.style.transform = 'translateX(' + translateValue + ')';
+        }
+    }
+</script>
+
+<style>
+    .slider-controls button {
+        padding: 8px 15px;
+        margin-right: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .slider-controls button:hover {
+        background-color: #f0f0f0;
+    }
+</style>
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Price Compare. All rights reserved.</p>
+            <p><a href="#" class="text-light text-decoration-none">Privacy Policy</a> | <a href="#" class="text-light text-decoration-none">Contact</a></p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+</body>
+</html>

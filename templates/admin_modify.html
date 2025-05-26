@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Modify Product - Price Compare</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(to right, #e0f7fa, #ffffff);
+            font-family: 'Segoe UI', sans-serif;
+            padding: 2rem;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        h2 {
+            font-weight: bold;
+            color: #004d67;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #004d67;
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 1px solid #cce7f0;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.2);
+            border-color: #80bdff;
+        }
+
+        .btn {
+            border-radius: 10px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .btn:hover {
+            transform: scale(1.02);
+        }
+
+        .arrow-btn {
+            font-size: 2rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #0077a6;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: 400px;
+            margin: auto;
+            display: block;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-content {
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+    </style>
+</head>
+<body>
+<div style="
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+">
+  <a href="/admin_dashboard" style="
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+    border: none;
+    border-radius: 12px;
+    color: #003e58;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+  " onmouseover="this.style.background='linear-gradient(135deg, #b2ebf2, #e0f7fa)'" onmouseout="this.style.background='linear-gradient(135deg, #e0f7fa, #b2ebf2)'">
+    ← Back to Dashboard
+  </a>
+</div>
+
+<div class="container glass-card">
+    <h2>Modify Product</h2>
+
+    {% if result %}
+        <div class="alert alert-info">{{ result }}</div>
+    {% endif %}
+
+    <form action="/admin_modify/update_product" method="POST" enctype="multipart/form-data">
+        
+        <div class="mb-3">
+            <label for="column" class="form-label">Field to Modify</label>
+            <select id="column" name="column" class="form-select" required onchange="handleColumnChange(this.value)">
+                <option value="">-- Select Field --</option>
+                <option value="name">Name</option>
+                <option value="price">Price</option>
+                <option value="description">Description</option>
+                <option value="category">Category</option>
+                <option value="image">Image</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="product_name" class="form-label">Product Name</label>
+            <input type="text" id="product_name" name="product_name" list="product_list"
+                   class="form-control" placeholder="Enter product name" autocomplete="off"
+                   required value="{{ product_name if product_name else '' }}"
+                   {% if product_name %}readonly{% endif %}>
+            <datalist id="product_list"></datalist>
+        </div>
+
+
+        <div class="mb-3" id="new_value_input" style="display:none;">
+            <label for="new_value" class="form-label">New Value</label>
+            <input type="text" name="new_value" id="new_value" class="form-control">
+        </div>
+
+        <div class="mb-3" id="new_category_input" style="display:none;">
+            <label for="new_category" class="form-label">New Category</label>
+            <select name="new_category" id="new_category" class="form-select">
+                <option>mobile</option>
+                <option>laptop</option>
+                <option>tv</option>
+                <option>smartwatch</option>
+                <option>tab</option>
+            </select>
+        </div>
+
+        <div class="mb-3" id="image_section" style="display:none;">
+            <button type="button" class="btn btn-outline-primary" onclick="openImageModal()">View & Edit Images</button>
+        </div>
+
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary px-4">Submit</button>
+        </div>
+    </form>
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-3 text-center">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <button class="arrow-btn" onclick="navigateImage(-1)">&larr;</button>
+                <img id="modalImage" class="modal-image" src="" alt="Image Preview">
+                <button class="arrow-btn" onclick="navigateImage(1)">&rarr;</button>
+            </div>
+            <div>
+                <form id="replaceForm" enctype="multipart/form-data">
+                    <input type="file" name="new_image_file" class="form-control mb-2">
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-danger" onclick="deleteImage()">Delete</button>
+                        <button type="button" class="btn btn-warning" onclick="replaceImage()">Replace</button>
+                    </div>
+                </form>
+                <form id="uploadNewForm" enctype="multipart/form-data" class="mt-3">
+                    <input type="file" name="new_image" class="form-control mb-2">
+                    <button type="button" class="btn btn-success" onclick="uploadNewImage()">Upload New</button>
+                </form>
+                <button type="button" class="btn btn-secondary mt-3" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const productInput = document.getElementById('product_name');
+    const dataList = document.getElementById('product_list');
+
+    function fetchProductSuggestions() {
+        fetch(`/admin_modify/get_product_names?query=${productInput.value}`)
+            .then(res => res.json())
+            .then(data => {
+                dataList.innerHTML = '';
+                data.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    dataList.appendChild(option);
+                });
+            });
+    }
+
+    if (!productInput.hasAttribute('readonly')) {
+        productInput.addEventListener('focus', fetchProductSuggestions);
+    }
+
+    function handleColumnChange(value) {
+        document.getElementById('new_value_input').style.display = value && value !== 'image' && value !== 'category' ? 'block' : 'none';
+        document.getElementById('new_category_input').style.display = value === 'category' ? 'block' : 'none';
+        document.getElementById('image_section').style.display = value === 'image' ? 'block' : 'none';
+    }
+
+    let currentIndex = 0;
+    let images = [];
+
+    function openImageModal() {
+        fetch(`/admin_modify/get_images/${productInput.value}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.length === 0) return alert('No images found.');
+                images = data;
+                currentIndex = 0;
+                updateModalImage();
+                const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+                modal.show();
+            });
+    }
+
+    function updateModalImage() {
+        const img = document.getElementById('modalImage');
+        img.src = images[currentIndex].image;
+    }
+
+    function navigateImage(step) {
+        currentIndex = (currentIndex + step + images.length) % images.length;
+        updateModalImage();
+    }
+
+    function deleteImage() {
+        fetch('/admin_modify/delete_image', {
+            method: 'POST',
+            body: new URLSearchParams({ product_name: productInput.value, image_url: images[currentIndex].image })
+        })
+        .then(res => res.json())
+        .then(resp => alert(resp.message));
+    }
+
+    function replaceImage() {
+        const fileInput = document.querySelector('#replaceForm input[name="new_image_file"]');
+        if (!fileInput.files.length) {
+            alert("Please select a file to upload.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('product_name', productInput.value);
+        formData.append('old_image_url', images[currentIndex].image);
+        formData.append('new_image_file', fileInput.files[0]);
+
+        fetch('/admin_modify/replace_image', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(resp => {
+                alert(resp.message);
+                if (resp.success && resp.new_url) {
+                    images[currentIndex].image = resp.new_url;
+                    updateModalImage();
+                    bootstrap.Modal.getInstance(document.getElementById('imageModal')).hide();
+                }
+            });
+    }
+
+    function uploadNewImage() {
+        const fileInput = document.querySelector('#uploadNewForm input[name="new_image"]');
+        const formData = new FormData();
+        formData.append('product_name', productInput.value);
+        formData.append('new_image', fileInput.files[0]);
+
+        fetch('/admin_modify/upload_new_image', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(resp => alert(resp.message));
+    }
+
+    productInput.addEventListener('focus', () => {
+        fetch(`/admin_modify/get_product_names?query=`)
+            .then(res => res.json())
+            .then(data => {
+                dataList.innerHTML = '';
+                data.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    dataList.appendChild(option);
+                });
+            });
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+        if (productInput.value) {
+            productInput.dispatchEvent(new Event('focus'));
+            document.getElementById('column').scrollIntoView({ behavior: 'smooth' });
+        }
+    });
+</script>
+</body>
+</html>

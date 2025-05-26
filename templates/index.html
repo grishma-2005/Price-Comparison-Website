@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Price Compare - Home</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f8f9fa;
+    }
+    .hero {
+      background-color: #0d6efd;
+      color: white;
+      padding: 60px 20px;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+    .search-bar input {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .features .card {
+      transition: 0.3s;
+    }
+    .features .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    footer {
+      background-color: #343a40;
+      color: #ddd;
+      padding: 20px 0;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
+    <a class="navbar-brand" href="#">Price Compare</a>
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav ms-auto">
+  <li class="nav-item dropdown">
+    <a class="nav-link" href="#" id="settingsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="bi bi-three-dots-vertical"></i>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="settingsDropdown">
+      <li><a class="dropdown-item" href="/wishlist">Wishlist</a></li>
+      <li><a class="dropdown-item" href="/order-history">Cart</a></li>
+      <li><a class="dropdown-item" href="/profile">Profile</a></li>
+      <li><a class="dropdown-item" href="/about">About Us</a></li>
+      <li><hr class="dropdown-divider"></li>
+      <li><a class="dropdown-item text-danger" href="/">Logout</a></li>
+    </ul>
+  </li>
+</ul>
+
+    </div>
+  </nav>
+
+  <!-- Split Hero Section -->
+<section class="d-flex flex-column flex-md-row" style="height: 80vh;">
+    <!-- Video Side -->
+    <div class="w-100 w-md-50">
+        <video autoplay muted playsinline class="w-100 h-100 object-fit-cover">
+            <source src="/static/hero-video.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+          </video>          
+    </div>
+  
+    <!-- Content Side -->
+    <div class="d-flex flex-column justify-content-center align-items-center w-100 w-md-50 text-white text-center p-5" style="background-color: #191970;">
+        <h1 class="display-5 mb-3">Compare Prices Here</h1>
+      <p class="lead mb-4">Save time. Save money. Shop smart with Price Compare.</p>
+      <form action="/search" method="post" style="max-width: 500px; width: 100%;">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Search for a product..." name="query" required>
+          <button class="btn btn-light" type="submit">Search</button>
+        </div>
+      </form>
+    </div>
+  </section>
+  
+  <!-- Feature Section -->
+  <section class="features py-5">
+    <div class="container">
+      <div class="row text-center g-4">
+        <div class="col-md-4">
+          <div class="card p-4">
+            <h5>Compare Prices</h5>
+            <p>Check prices from various stores in one place.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-4">
+            <h5>Wishlist</h5>
+            <p>Save products to buy later or track prices.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card p-4">
+            <h5>Simple Interface</h5>
+            <p>User-friendly design with no clutter.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 Price Compare. All rights reserved.</p>
+      <p><a href="#" class="text-light text-decoration-none">Privacy Policy</a> | <a href="#" class="text-light text-decoration-none">Contact</a></p>
+    </div>
+  </footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

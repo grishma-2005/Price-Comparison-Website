@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Search Results - Price Compare</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #191970;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav {
+      background-color: #0d6efd;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    nav a {
+      color: white;
+      font-weight: 500;
+      font-size: 16px;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    nav a:hover {
+      color: #e0e0ff;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 30px;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    h2 {
+      text-align: center;
+      color: #191970;
+      margin-bottom: 30px;
+    }
+
+    .product {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      border-bottom: 1px solid #ddd;
+      padding: 20px 0;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: slideUp 0.5s forwards;
+    }
+
+    .product:nth-child(even) { animation-delay: 0.2s; }
+    .product:nth-child(odd) { animation-delay: 0.4s; }
+
+    .product img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background-color: #f9f9f9;
+      transition: transform 0.3s ease;
+    }
+
+    .product img:hover {
+      transform: scale(1.05);
+    }
+
+    .product-info {
+      flex: 1;
+    }
+
+    .product-info h3 {
+      font-size: 20px;
+      margin: 0 0 8px 0;
+      color: #0d6efd;
+    }
+
+    .product-info h3 a {
+      color: #0d6efd;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .product-info h3 a:hover {
+      color: #004cbf;
+    }
+
+    .product-info p {
+      margin: 4px 0;
+      font-size: 15px;
+    }
+
+    .product-info p span.label {
+      font-weight: bold;
+    }
+
+    .wishlist-btn {
+      background-color: #000;
+      color: #fff;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 10px;
+      transition: background-color 0.3s ease;
+    }
+
+    .card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 12px;
+}
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+
+    .wishlist-btn:hover {
+      background-color: #333;
+    }
+
+    .remove-wishlist-btn { /* Style for remove button */
+        background-color: #dc3545; /* Red color */
+    }
+
+    .remove-wishlist-btn:hover {
+        background-color: #c82333;
+    }
+
+    .no-results {
+      text-align: center;
+      font-size: 18px;
+      color: #555;
+      margin-top: 40px;
+    }
+
+    .lowest-price-section {
+  background-color: #e6f2ff; /* Light blue tone for separation */
+  padding: 30px;
+  border-radius: 12px;
+  margin-bottom: 40px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+.lowest-price-section h2 {
+  color: #003366;
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/index">Home</a>
+  <a href="/wishlist">View Wishlist</a>
+</nav>
+
+<div class="container">
+  <h2>Search Results</h2>
+
+    <div class="lowest-price-section">
+  <h2>Lowest Prices</h2>
+  <div class="row text-center">
+    {% if lowest_amazon %}
+      <div class="col-md-4">
+        <h4>Amazon</h4>
+        <img src="{{ lowest_amazon.product_photo }}" width="100">
+        <p>{{ lowest_amazon.product_title }}</p>
+        <p><strong>{{ lowest_amazon.product_price }}</strong></p>
+        <a href="{{ lowest_amazon.product_url }}" target="_blank">View</a>
+      </div>
+    {% endif %}
+    {% if lowest_myntra %}
+      <div class="col-md-4">
+        <h4>Myntra</h4>
+        <img src="{{ lowest_myntra.product_photo }}" width="100">
+        <p>{{ lowest_myntra.product_title }}</p>
+        <p><strong>₹{{ lowest_myntra.product_price }}</strong></p>
+        <a href="{{ lowest_myntra.product_url }}" target="_blank">View</a>
+      </div>
+    {% endif %}
+    {% if lowest_supabase %}
+      <div class="col-md-4">
+        <h4>Price Compare</h4>
+        {% if lowest_supabase.images %}
+          <img src="{{ lowest_supabase.images[0] }}" width="100">
+        {% else %}
+          <img src="{{ lowest_supabase.product_photo }}" width="100">
+        {% endif %}
+        <p>{{ lowest_supabase.product_title }}</p>
+        <p><strong>₹{{ lowest_supabase.product_price }}</strong></p>
+        <a href="{{ url_for('product_detail', product_name=lowest_supabase['product_title']) }}" target="_blank">View</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+
+    {% if products %}
+        {% for product in products %}
+            <div class="product">
+                {% if product.source == 'Price Compare' and product.images %}
+                    <img src="{{ product.images[0] }}" alt="{{ product.product_title }} Image">
+                {% else %}
+                    <img src="{{ product.product_photo }}" alt="Product Image">
+                {% endif %}
+                <div class="product-info">
+                    {% if product.source == 'Price Compare' %}
+                        <h3><a href="{{ url_for('product_detail', product_name=product['product_title']) }}">{{ product['product_title'] }}</a></h3>
+                        <p><span class="label">Price Compare Price:</span> {{ product.product_price }}</p>
+                    {% elif product.source == 'Amazon' %}
+                        <h3><a href="{{ product.product_url }}" target="_blank">{{ product['product_title'] }}</a></h3>
+                        <p><span class="label">Amazon Price:</span> {{ product.product_price }}</p>
+                    {% elif product.source == 'Myntra' %}
+                        <h3><a href="{{ product.product_url }}" target="_blank">{{ product['product_title'] }}</a></h3>
+                        <p><span class="label">Myntra Price:</span> {{ product.product_price }}</p>
+                    {% else %}
+                        <h3>{{ product['product_title'] }}</h3>
+                        <p><span class="label">Price:</span> {{ product.product_price }}</p>
+                    {% endif %}
+
+                    <p><span class="label">Source:</span> {{ product.source }}</p>
+
+                    {# Conditional rendering of Add/Remove from Wishlist button #}
+                    {% if product.in_wishlist %}
+                        <form method="POST" action="/remove-from-wishlist">
+                            {# You need to get the wishlist_id to remove it. This requires fetching the wishlist_id in the search route as well.
+                            For now, we'll assume a workaround for the 'remove' action based on product_url or product_title,
+                            but the ideal way is to pass the actual wishlist_id from the database.
+                            Since the current /remove-from-wishlist expects 'wishlist_id', you'll need to modify that route
+                            or how you identify the item to remove if you don't pass 'wishlist_id' from here.
+                            Let's add a hidden input for product_url to facilitate removal by product_url if wishlist_id is not available. #}
+                            <input type="hidden" name="product_url" value="{{ product.product_url if product.product_url else product['product_title'] }}">
+                            <button type="submit" class="btn btn-custom wishlist-btn remove-wishlist-btn">Remove from Wishlist</button>
+                        </form>
+                    {% else %}
+                        <form method="POST" action="/add_to_wishlist">
+                            <input type="hidden" name="product_url" value="{{ product.product_url if product.product_url else url_for('product_detail', product_name=product['product_title']) }}">
+                            <input type="hidden" name="product_title" value="{{ product.product_title }}">
+                            <input type="hidden" name="product_price" value="{{ product.product_price }}">
+                            <input type="hidden" name="product_photo" value="{% if product.source == 'Price Compare' and product.images %}{{ product.images[0] }}{% else %}{{ product.product_photo }}{% endif %}">
+                            <input type="hidden" name="source_type" value="{{ product.source }}"> {# Changed name to source_type as per your add_to_wishlist #}
+                            <button type="submit" class="btn btn-custom wishlist-btn">❤️ Add to Wishlist</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="no-results">No products found matching your criteria.</p>
+    {% endif %}
+</div>
+
+</body>
+</html>

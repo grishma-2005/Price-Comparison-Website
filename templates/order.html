@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Order: {{ product.name }} - Price Compare</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(180deg, #f4f6f9 0%, #ffffff 100%);
+            padding-top: 70px;
+            overflow-x: hidden;
+            color: #212529;
+        }
+
+        nav.navbar {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .order-container {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+            padding: 40px 30px;
+            max-width: 600px;
+            margin: 50px auto;
+            transition: all 0.3s ease;
+        }
+
+        .order-container:hover {
+            transform: scale(1.02);
+        }
+
+        h2 {
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 25px;
+            text-align: center;
+            color: #198754;
+        }
+
+        label {
+            font-weight: 600;
+            margin-top: 20px;
+        }
+
+        input[type="number"],
+        textarea,
+        select { /* Added style for select dropdown */
+            width: 100%;
+            padding: 12px 15px;
+            margin-top: 8px;
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            font-size: 1rem;
+            font-family: 'Segoe UI', sans-serif;
+            transition: border-color 0.3s ease;
+            resize: none;
+        }
+
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus { /* Added focus style for select dropdown */
+            outline: none;
+            border-color: #198754;
+            box-shadow: 0 0 6px rgba(25, 135, 84, 0.5);
+        }
+
+        .info-text {
+            font-size: 1.1rem;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .total-price {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #198754;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .btn-order {
+            display: block;
+            width: 100%;
+            background-color: #198754;
+            color: white;
+            font-size: 1.2rem;
+            padding: 14px 0;
+            border: none;
+            border-radius: 12px;
+            margin-top: 35px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-order:hover {
+            background-color: #157347;
+            box-shadow: 0 6px 20px rgba(25, 135, 84, 0.5);
+        }
+
+        footer {
+            background-color: #343a40;
+            color: #ddd;
+            padding: 20px 0;
+            text-align: center;
+            margin-top: 80px;
+            font-size: 0.9rem;
+        }
+
+        a.back-link {
+            display: inline-block;
+            margin-bottom: 30px;
+            color: #198754;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        a.back-link:hover {
+            text-decoration: underline;
+            color: #145c32;
+        }
+
+        .payment-options {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .payment-options label {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .payment-options select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .cod-message {
+            margin-top: 20px;
+            color: orange;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top px-4">
+        <a class="navbar-brand" href="/">Price Compare</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="/index">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="/wishlist">Wishlist</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <a href="/index" class="back-link">&larr; Back to Home</a>
+
+        <div class="order-container" data-aos="fade-up" data-aos-duration="1000">
+            <h2>Order: {{ product.name }}</h2>
+
+            <p class="info-text"><strong>Price:</strong> ₹{{ product.price }}</p>
+            <p class="info-text"><strong>Available Stock:</strong> {{ product.stock }}</p>
+
+            <form id="orderForm" method="POST" action="/submit-order">
+                <input type="hidden" name="product_name" value="{{ product.name }}" />
+
+                <label for="quantity">Quantity</label>
+                <input
+                    type="number"
+                    id="quantity"
+                    name="quantity"
+                    min="1"
+                    max="{{ product.stock }}"
+                    value="1"
+                    onchange="updateTotal()"
+                    required
+                />
+
+                <p class="total-price">Total: ₹<span id="total">{{ product.price }}</span></p>
+
+                <label for="address">Shipping Address</label>
+                <textarea
+                    id="address"
+                    name="address"
+                    rows="3"
+                    required
+                >{{ user.address }}</textarea>
+
+                <div class="payment-options">
+                    <label for="payment_method">Payment Method</label>
+                    <select id="payment_method" name="payment_method" class="form-select" onchange="togglePayNowButton()">
+                        <option value="cod">Cash on Delivery</option>
+                    </select>
+                    <p class="cod-message" style="display:none;">You will pay in cash when your order is delivered.</p>
+                </div>
+
+                <button class="btn-order" id="rzp-button1" type="button">Pay Now</button>
+                <button class="btn-order" id="cod-button" type="submit" style="display:none;">Place Order (Cash on Delivery)</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Price Compare. All rights reserved.</p>
+        <p><a href="#" class="text-light text-decoration-none">Privacy Policy</a> | <a href="#" class="text-light text-decoration-none">Contact</a></p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        AOS.init();
+
+        // Update total price based on quantity
+        function updateTotal() {
+            const quantity = document.getElementById('quantity').value;
+            const price = parseFloat("{{ product.price }}");
+            document.getElementById('total').innerText = (quantity * price).toFixed(2);
+        }
+
+        function togglePayNowButton() {
+            const paymentMethod = document.getElementById('payment_method').value;
+            const rzpButton = document.getElementById('rzp-button1');
+            const codButton = document.getElementById('cod-button');
+            const codMessage = document.querySelector('.cod-message');
+
+            if (paymentMethod === 'cod') {
+                rzpButton.style.display = 'none';
+                codButton.style.display = 'block';
+                codMessage.style.display = 'block';
+            } else {
+                rzpButton.style.display = 'block';
+                codButton.style.display = 'none';
+                codMessage.style.display = 'none';
+            }
+        }
+
+        // Initial call to set the initial visibility
+        togglePayNowButton();
+
+        
+    </script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</body>
+</html>

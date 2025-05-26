@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Receipt - Price Compare</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 60px 20px;
+    }
+
+    .receipt-card {
+      max-width: 600px;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+      padding: 40px;
+      margin: auto;
+      transition: all 0.3s ease;
+    }
+
+    .receipt-title {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #198754;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .receipt-item {
+      font-size: 1rem;
+      margin-bottom: 15px;
+      color: #212529;
+    }
+
+    .receipt-item strong {
+      color: #0d6efd;
+    }
+
+    .receipt-total {
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-align: right;
+      margin-top: 25px;
+      color: #0d6efd;
+    }
+
+    .btn-home {
+      margin-top: 30px;
+      display: block;
+      width: 100%;
+      padding: 10px 0;
+      border-radius: 12px;
+      font-weight: 500;
+      color: #0d6efd;
+      border: 2px solid #0d6efd;
+      background: transparent;
+      transition: all 0.3s ease;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .btn-home:hover {
+      background-color: #0d6efd;
+      color: #fff;
+      box-shadow: 0 5px 20px rgba(13, 110, 253, 0.2);
+    }
+
+    @media (max-width: 576px) {
+      .receipt-card {
+        padding: 30px 20px;
+      }
+
+      .receipt-title {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="receipt-card" data-aos="fade-up">
+    <div class="receipt-title">Order Receipt</div>
+    <div class="receipt-body">
+    <div class="receipt-item"><strong>Product:</strong> {{ product_name }}</div>
+      <div class="receipt-item"><strong>Order Date:</strong> {{ order_time }}</div>
+      <div class="receipt-item"><strong>Quantity:</strong> {{ quantity }}</div>
+      <div class="receipt-item"><strong>Shipping Address:</strong> {{ address }}</div>
+      <div class="receipt-item"><strong>Payment Method:</strong> {{ payment_method }}</div>
+      <div class="receipt-item"><strong>Estimated Delivery:</strong> {{ delivery_date }}</div>
+      <div class="receipt-total">Total: ₹{{ total_price }}</div>
+    </div>
+    <a href="/index" class="btn-home">Back to Home</a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>
+    AOS.init();
+  </script>
+</body>
+</html>

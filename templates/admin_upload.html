@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Upload Product - Price Compare</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to top left, #d0eaff, #e0f7fa);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 1.2s ease-in-out;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 22px;
+      padding: 45px 35px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 10px 40px rgba(31, 38, 135, 0.25);
+      width: 440px;
+      position: relative;
+      animation: slideInUp 1s ease;
+    }
+
+    .glass-card::after {
+      content: "";
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      bottom: -5px;
+      left: -5px;
+      z-index: -1;
+      border-radius: 25px;
+      background: linear-gradient(to top right, rgba(255,255,255,0.2), rgba(96,165,250,0.2));
+      filter: blur(20px);
+      opacity: 0.8;
+      animation: pulseGlow 3s ease-in-out infinite;
+    }
+
+    h2 {
+      text-align: center;
+      color: #0f172a;
+      margin-bottom: 28px;
+      font-size: 28px;
+    }
+
+    label {
+      display: block;
+      margin: 16px 0 6px;
+      color: #1e293b;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid rgba(200, 200, 255, 0.4);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.6);
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #38bdf8;
+      background-color: #fff;
+      transform: scale(1.02);
+      box-shadow: 0 0 6px #38bdf8aa;
+    }
+
+    textarea {
+      resize: none;
+    }
+
+    .dropzone {
+      margin-top: 10px;
+      padding: 22px;
+      border: 2px dashed #60a5fa;
+      border-radius: 14px;
+      background-color: rgba(255, 255, 255, 0.4);
+      text-align: center;
+      color: #1e3a8a;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      animation: pulseZone 2.5s infinite;
+    }
+
+    .dropzone:hover,
+    .dropzone.dragover {
+      background-color: rgba(255, 255, 255, 0.7);
+      border-color: #38bdf8;
+      transform: scale(1.03);
+      box-shadow: 0 0 12px #38bdf8aa;
+    }
+
+    .preview {
+      margin-top: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .preview img {
+      width: 70px;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      opacity: 0;
+      transform: scale(0.8);
+      animation: fadeInPreview 0.4s ease forwards;
+    }
+
+    button {
+      margin-top: 28px;
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(to right, #60a5fa, #38bdf8);
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+    }
+
+    button:hover {
+      background: linear-gradient(to right, #3b82f6, #0ea5e9);
+      transform: scale(1.05);
+    }
+
+    ul {
+      margin-top: 10px;
+      padding: 0;
+      list-style: none;
+      color: #10b981;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideInUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes fadeInPreview {
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+
+    @keyframes pulseZone {
+      0%, 100% { box-shadow: 0 0 0px #38bdf880; }
+      50% { box-shadow: 0 0 8px #38bdf880; }
+    }
+  </style>
+</head>
+<body>
+<div style="
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+">
+  <a href="/admin_dashboard" style="
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+    border: none;
+    border-radius: 12px;
+    color: #003e58;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+  " onmouseover="this.style.background='linear-gradient(135deg, #b2ebf2, #e0f7fa)'" onmouseout="this.style.background='linear-gradient(135deg, #e0f7fa, #b2ebf2)'">
+    ← Back to Dashboard
+  </a>
+</div>
+
+  <div class="glass-card">
+    <h2>Upload New Product</h2>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form action="/admin_upload/" method="POST" enctype="multipart/form-data" id="uploadForm">
+      <label for="product_name">Product Name:</label>
+      <input type="text" name="product_name" id="product_name" required>
+
+      <label for="price">Price:</label>
+      <input type="number" name="price" step="0.01" id="price" required>
+
+      <label for="description">Description:</label>
+      <textarea name="description" rows="4" id="description" required></textarea>
+
+      <label for="category">Category:</label>
+      <select name="category" id="category" required>
+        <option value="">--Select--</option>
+        <option value="phone">Phone</option>
+        <option value="computer">Computer</option>
+        <option value="TV">TV</option>
+      </select>
+
+      <label for="stock">Stock:</label>
+      <input type="number" name="stock" min="0" id="stock" required>
+
+      <label for="images">Upload Images:</label>
+      <div class="dropzone" onclick="document.getElementById('images').click()">Click or Drag Images Here</div>
+      <input type="file" name="images" id="images" accept="image/*" multiple style="display: none;" required>
+      <div class="preview" id="preview"></div>
+
+      <button type="submit">Upload Product</button>
+    </form>
+  </div>
+
+  <script>
+    const input = document.getElementById('images');
+    const preview = document.getElementById('preview');
+    const dropzone = document.querySelector('.dropzone');
+
+    input.addEventListener('change', () => {
+      preview.innerHTML = "";
+      [...input.files].forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = document.createElement("img");
+          img.src = e.target.result;
+          preview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    dropzone.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      dropzone.classList.add("dragover");
+    });
+
+    dropzone.addEventListener("dragleave", () => {
+      dropzone.classList.remove("dragover");
+    });
+
+    dropzone.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dropzone.classList.remove("dragover");
+      input.files = e.dataTransfer.files;
+      input.dispatchEvent(new Event('change'));
+    });
+  </script>
+
+</body>
+</html>
