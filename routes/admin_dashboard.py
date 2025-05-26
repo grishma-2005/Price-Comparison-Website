@@ -1,425 +1,89 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Admin Dashboard - Price Compare</title>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <style>
-    body {
-      margin: 0;
-      padding: 30px;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #e0f7fa, #f1f8ff);
-      color: #333;
-      animation: fadeIn 1s ease-in-out;
-    }
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session, Blueprint
+from supabase_config import supabase  # Uses shared supabase config
+from routes.utils import admin_login_required
 
-    h2 {
-      text-align: center;
-      font-size: 34px;
-      color: #2c3e50;
-      margin-bottom: 40px;
-      animation: slideDown 0.8s ease forwards;
-    }
+app = Flask(__name__)
 
-    /* Frosted glass form */
-    form {
-      background: rgba(255, 255, 255, 0.6);
-      backdrop-filter: blur(10px);
-      padding: 20px;
-      border-radius: 15px;
-      width: fit-content;
-      margin: 0 auto 30px auto;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
+# Define the blueprint once
+admin_dashboard_bp = Blueprint("admin_dashboard", __name__)
 
-    input[type="text"] {
-      padding: 12px 14px;
-      width: 300px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      outline: none;
-      font-size: 16px;
-    }
+@app.route("/admin_upload")
+@admin_login_required
+def upload_page():
+    return render_template("admin_upload.html")
 
-    button, .btn {
-      padding: 10px 18px;
-      margin: 6px; /* Adjust margin if needed after adding icons */
-      border: none;
-      border-radius: 8px;
-      background: linear-gradient(to right, #4facfe, #00f2fe);
-      color: #fff;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 8px rgba(79, 172, 254, 0.3);
-    }
+@app.route("/admin_modify")
+@admin_login_required
+def modify_page():
+    return render_template("admin_modify.html")
 
-    button:hover, .btn:hover {
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 6px 12px rgba(0, 242, 254, 0.4);
-    }
+@app.route("/admin_delete")
+@admin_login_required
+def delete_page():
+    return render_template("admin_delete.html")
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-      background: rgba(255, 255, 255, 0.65);
-      backdrop-filter: blur(8px);
-      border-radius: 12px;
-      overflow: hidden;
-      animation: fadeInTable 1s ease;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
+@admin_dashboard_bp.route("/admin_dashboard")
+@admin_login_required
+def admin_dashboard():
+    query = request.args.get('query', '').strip().lower()
+    
+    # Fetch products (filtered or all)
+    if query:
+        products_response = supabase.table("products").select("*").ilike('name', f'%{query}%').execute()
+    else:
+        products_response = supabase.table("products").select("*").execute()
 
-    th, td {
-      padding: 14px;
-      text-align: left;
-    }
+    products_data = products_response.data or []
 
-    th {
-      background: rgba(255, 255, 255, 0.8);
-      color: #2c3e50;
-      font-weight: bold;
-    }
+    # Fetch all images
+    images_response = supabase.table("product_images").select("*").execute()
+    images_data = images_response.data or []
 
-    tr:nth-child(even) {
-      background-color: rgba(255, 255, 255, 0.5);
-    }
+    # Map product_name (lowercase) to list of image dicts
+    image_map = {}
+    for img in images_data:
+        name = img.get("product_name", "").strip().lower()
+        url = img.get("image_url")
+        if name and url:
+            image_map.setdefault(name, []).append({"image_url": url})
 
-    tr:hover {
-      background-color: rgba(255, 255, 255, 0.7);
-      transition: background-color 0.2s ease;
-    }
+    # Attach images to each product
+    for product in products_data:
+        product_name = product.get("name", "").strip().lower()
+        product["images"] = image_map.get(product_name, [])
 
-    .short-desc {
-      color: #555;
-    }
-
-    a.toggle-desc {
-      color: #007bff;
-      text-decoration: underline;
-      cursor: pointer;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 999;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(8px);
-      text-align: center;
-    }
-
-    .modal img {
-      max-height: 80%;
-      max-width: 90%;
-      margin-top: 50px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-
-    .modal-close {
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      font-size: 30px;
-      color: #333;
-      cursor: pointer;
-    }
-
-    .nav-arrow {
-      font-size: 40px;
-      color: #333;
-      cursor: pointer;
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-
-    .nav-arrow.left {
-      left: 30px;
-    }
-
-    .nav-arrow.right {
-      right: 30px;
-    }
-
-    #suggestionBox {
-      position: absolute;
-      background: white;
-      color: black;
-      border: 1px solid #ccc;
-      max-height: 150px;
-      overflow-y: auto;
-      z-index: 99;
-      width: 300px;
-      border-radius: 6px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    #suggestionBox div {
-      padding: 8px;
-      cursor: pointer;
-    }
-
-    #suggestionBox div:hover {
-      background-color: #f0f0f0;
-    }
-
-    .navbar {
-      background: rgba(255, 255, 255, 0.6);
-      backdrop-filter: blur(10px);
-      color: #2c3e50;
-      padding: 16px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-family: 'Segoe UI', sans-serif;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-
-    .navbar-brand {
-      font-size: 24px;
-      font-weight: bold;
-    }
-
-    .navbar-links {
-      display: flex;
-      gap: 15px;
-    }
-
-    .nav-link {
-      color: #2c3e50;
-      text-decoration: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      transition: background-color 0.3s ease;
-      font-weight: 500;
-    }
-
-    .nav-link:hover {
-      background-color: rgba(0, 0, 0, 0.05);
-    }
-
-    .logout {
-      background: linear-gradient(to right, #ff6a6a, #ff4757);
-      color: white;
-      font-weight: bold;
-      box-shadow: 0 3px 8px rgba(255, 71, 87, 0.4);
-    }
-
-    .logout:hover {
-      background: linear-gradient(to right, #ff4d4d, #e84118);
-      transform: translateY(-1px);
-    }
-
-    /* Animations */
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes slideDown {
-      from { transform: translateY(-30px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    @keyframes fadeInTable {
-      from { opacity: 0; transform: scale(0.98); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-  </style>
-</head>
-<body>
-<nav class="navbar">
-  <div class="navbar-brand">Admin Panel</div>
-  <div class="navbar-links">
-    <a href="/admin_upload/" class="nav-link">Upload</a>
-    <a href="/admin_modify/" class="nav-link">Modify</a>
-    <a href="/admin_delete/" class="nav-link">Delete</a>
-    <a href="/admin_order" class="nav-link">Orders</a>
-    <a href="/admin_login_page" class="nav-link logout">Logout</a>
-    <!-- <a href="{{ url_for('admin_analytics_bp.analytics_dashboard') }}" class="btn btn-primary">View Sales Dashboard</a> -->
-
-  </div>
-</nav>
-
-<h2>Admin Dashboard</h2>
-
-<form method="GET" action="/admin_dashboard" style="position: relative; display: inline-block;">
-  <input type="text" id="searchInput" name="query" value="{{ query }}" placeholder="Search product by name..." onkeyup="autocompleteProduct()" onfocus="autocompleteProduct()" autocomplete="off">
-  <button type="submit">Search</button>
-  <div id="suggestionBox"></div>
-</form>
+    return render_template("admin_dashboard.html", products=products_data, query=query)
 
 
-{% if products %}
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Category</th>
-      <th>Price</th>
-      <th>Description</th>
-      <th>Stock</th>
-      <th>Images</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for product in products %}
-    <tr>
-      <td>{{ product.name }}</td>
-      <td>{{ product.category }}</td>
-      <td>{{ product.price }}</td>
-      <td>
-        {% set words = product.description.split() %}
-        {% if words|length > 10 %}
-          <span class="short-desc">{{ words[:10] | join(' ') }}...</span>
-          <span class="full-desc" style="display: none;">{{ product.description }}</span>
-          <a href="#" class="toggle-desc" onclick="toggleDescription(this); return false;">more</a>
-        {% else %}
-          {{ product.description }}
-        {% endif %}
-      </td>
-      <td>
-        {% if product.stock == 0 %}
-          <span style="color: red; font-weight: bold;">Out of Stock</span>
-        {% else %}
-          {{ product.stock }}
-        {% endif %}
-      </td>
-      <td>
-        {% if product.images %}
-          {% set img_urls = product.images | map(attribute="image_url") | list %}
-          <button class="btn" onclick='showImages({{ img_urls | tojson | safe }})'>View Images</button>
-        {% else %}
-          No Images
-        {% endif %}
-      </td>
-      <td>
-        <a href="/admin_modify/?product_name={{ product.name }}" class="btn btn-sm btn-info me-1" title="Modify">
-          <i class="bi bi-pencil-square"></i>
-        </a>
-        <button class="btn btn-sm btn-danger" onclick="deleteProduct('{{ product.name }}')" title="Delete">
-          <i class="bi bi-trash"></i>
-        </button>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-{% else %}
-  <p style="text-align: center;">No products found.</p>
-{% endif %}
+# Autocomplete endpoint
+@admin_dashboard_bp.route('/get_product_names')
+@admin_login_required
 
-<div id="modal" class="modal">
-  <span id="modal-close" class="modal-close" onclick="closeModal()">&times;</span>
-  <span class="nav-arrow left" onclick="prevImage()">&#8592;</span>
-  <img id="modal-image" src="" alt="Product Image">
-  <span class="nav-arrow right" onclick="nextImage()">&#8594;</span>
-</div>
+def get_product_names():
+    query = request.args.get('query', '').lower()
+    names = supabase.table('products').select('name').execute().data
+    filtered_names = [n['name'] for n in names if query in n['name'].lower()]
+    return jsonify({'names': filtered_names})
 
-<script>
-  let currentImages = [];
-  let currentIndex = 0;
+@admin_dashboard_bp.route("/delete_product_direct", methods=["POST"])
+@admin_login_required
+def delete_product_direct():
+    product_name = request.form.get("product_name")
 
-  function showImages(images) {
-    currentImages = images;
-    currentIndex = 0;
-    if (images.length > 0) {
-      document.getElementById('modal-image').src = currentImages[currentIndex];
-      document.getElementById('modal').style.display = 'block';
-    }
-  }
+    # Delete image(s)
+    supabase.table("product_images").delete().eq("product_name", product_name).execute()
 
-  function closeModal() {
-    document.getElementById('modal').style.display = 'none';
-  }
+    # Delete product
+    response = supabase.table("products").delete().eq("name", product_name).execute()
 
-  function nextImage() {
-    if (currentIndex < currentImages.length - 1) {
-      currentIndex++;
-      document.getElementById('modal-image').src = currentImages[currentIndex];
-    }
-  }
+    # Check if deletion was successful based on `response.data`
+    if response.data is not None:
+        return redirect(url_for('admin_dashboard.admin_dashboard', query=''))
+    else:
+        return "Failed to delete product", 500
 
-  function prevImage() {
-    if (currentIndex > 0) {
-      currentIndex--;
-      document.getElementById('modal-image').src = currentImages[currentIndex];
-    }
-  }
+# Register the blueprint
+app.register_blueprint(admin_dashboard_bp)
 
-  function toggleDescription(link) {
-    const shortDesc = link.parentElement.querySelector('.short-desc');
-    const fullDesc = link.parentElement.querySelector('.full-desc');
-
-    if (shortDesc.style.display === 'none') {
-      shortDesc.style.display = '';
-      fullDesc.style.display = 'none';
-      link.textContent = 'more';
-    } else {
-      shortDesc.style.display = 'none';
-      fullDesc.style.display = '';
-      link.textContent = 'less';
-    }
-  }
-
-  function autocompleteProduct() {
-    const query = document.getElementById('searchInput').value.trim();
-    let url = '/get_product_names';
-    if (query.length > 0) {
-      url += `?query=${encodeURIComponent(query)}`;
-    }
-
-    fetch(url)
-      .then(response => response.json())
-      .then(data => {
-        let suggestions = "";
-        if (data.names && data.names.length > 0) {
-          data.names.forEach(name => {
-            suggestions += `<div onclick="selectSuggestion('${name}')">${name}</div>`;
-          });
-        }
-        document.getElementById('suggestionBox').innerHTML = suggestions;
-      });
-  }
-
-  function selectSuggestion(name) {
-    document.getElementById('searchInput').value = name;
-    document.getElementById('suggestionBox').innerHTML = "";
-  }
-
-  function deleteProduct(name) {
-    if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
-
-    $.ajax({
-      url: '/delete_product',
-      type: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify({ product_name: name }),
-      success: function (response) {
-        alert(response.message || "Product deleted successfully.");
-        window.location.reload();
-      },
-      error: function () {
-        alert('Failed to delete the product.');
-      }
-    });
-  }
-</script>
-
-</body>
-</html>
+if __name__ == '__main__':
+    app.run(debug=True)
