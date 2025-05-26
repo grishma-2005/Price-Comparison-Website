@@ -8,6 +8,7 @@ A web-based e-commerce application that allows users to compare prices from Amaz
 - Backend: Python (Flask)
 - Database: Supabase 
 - Web Scraping: Selenium
+- API: Rapid API
 
 ## Features
 - Real-time product comparison
