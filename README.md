@@ -1,5 +1,3 @@
-> ⚠️ This project is **proprietary**. All rights reserved. Do not reuse or distribute any part of this code without permission.
-
 # Price Comparison Website
 
 ## Description
